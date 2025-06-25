@@ -15,7 +15,7 @@ This specification follows the OpenAPI 3.x standard.
 
 ## What’s in This Repo?
 
-- `Simplex Wireless API.yaml` — The OpenAPI specification file describing the REST API.
+- `Simplex_Wireless_API.yaml` — The OpenAPI specification file describing the REST API.
 - `Index.html` - Swagger UI for Simplew Wireless API's
 - `README.md` — This document.
 - `LICENSE` — License file (Apache 2.0 or MIT).
