@@ -16,6 +16,7 @@ This specification follows the OpenAPI 3.x standard.
 ## What’s in This Repo?
 
 - `Simplex Wireless API.yaml` — The OpenAPI specification file describing the REST API.
+- `Index.html` - Swagger UI for Simplew Wireless API's
 - `README.md` — This document.
 - `LICENSE` — License file (Apache 2.0 or MIT).
 
@@ -27,9 +28,13 @@ You can use this OpenAPI spec with tools like:
 - Postman – For testing and development
 - OpenAPI Code Generators – To generate client SDKs in various languages
 
-### Viewing in Swagger UI (Locally)
+### Viewing in Swagger UI (online or locally)
 
-1. Clone this repo:
+https://simplexwireless.github.io/API/
+
+or
+
+Clone this repo:
    ```bash
    git clone https://github.com/simplexwireless/simplex-api.git
    cd simplex-api
