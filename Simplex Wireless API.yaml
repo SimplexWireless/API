@@ -1,0 +1,836 @@
+openapi: 3.0.1
+info:
+  title: Simplex Wireless API 
+  description: |
+    Welcome to the simplexwireless.com API documentation. Here you will find resources and support information for the API offered by simplexwireless for the management of IoT SIMs and data resources
+
+    # Currently supported operations
+    - **Token**
+    Generate your API access token
+    - **Test**
+    Test your rest API syntaxt and server access with call back function
+    - **Device Inventory**
+    List all devices on your account 
+    - **Device Details**
+    List device details of a single device
+    - **Device History**
+    List device history of a single device
+    - **Data Consumption Single device**
+    Get device consumption for a single device
+    - **Data Consumption Reports - List**
+    Get list of consumption records/files for daily/monthly usage on all devices
+    - **Data Consumption Reports - Download**
+    Download the identified record/file listed
+    - **Device Events**
+    Get the latest signalling /data events recorded for a single device
+    - **Set Device Tag**
+    Set a custom tag / label for a given device
+    - **Change Device Status**
+    Change the device state ( Active <> Pause )
+    - **Send Message (AO-SMS)** (premium service on C1)
+    Send SMS to the identified device 
+    - **Query Message (AO-SMS)** (premium service on C1)
+    Query message delivery status 
+    
+    First use operation Token to generate your API access token key using your Simplex Wireless API account login credentials. If you don't have those please contact support@simplexwireless.com. 
+    
+    "Device" refers to different identifiers generally used for the subscription/profile/integrated identifier/embedded identifier/physical device.
+    
+    You may also try out the various operations directly below.
+    
+  contact: 
+    email: support@simplexwireless.com
+  version: 1.0.8
+servers:
+- url: http://localhost:2443/v1/
+
+
+paths:
+  /user/login:
+    post:
+      tags:
+      - Token
+      summary: Generate Access Token 
+      description: Generate an authentication token that allows secure access to the APIs. Token will be used in the request headers as X-Authorization token.  Token will expire and need to be renewed if not used during expiry period. Use your API account login credentials as input.
+      operationId: loginUser
+      requestBody:
+        description: Your Simplex Wireless API account login credentials
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+        required: true
+      responses:
+        200:
+          description: | 
+            API token successfully generated
+        
+            Token expires in "tokenExpTs" seconds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpxUser'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - invalid username/password supplied
+  /test/echo/{text}:
+    get:
+      tags:
+      - Test
+      summary: Echo back - TEST
+      description: Testing the Rest API syntax and service endpoint with an end to end  GET operation, it echos back the text passed in the request when succesfull.
+      operationId: testEchoText
+      parameters:
+      - name: text
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Success - Text passed in the Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+  /devices:
+    get:
+      tags:
+      - Device Inventory
+      summary: List all devices
+      description: Call to fetch the device details for all the devices registered on the account
+      operationId: getDevices
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      - name: pageSize
+        in: query
+        description: Page size
+        schema:
+          type: integer
+      - name: pageIndex
+        in: query
+        description: Page index
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Details for all registered devices.Includes static ID's and changing parameters that migth not yet be updated/available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponseArray'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+  /device:
+    get:
+      tags:
+      - Device Details
+      summary: Get Device Details for single device
+      description: Call to fetch the device details for a specific device (ICCID/IMSI/MSISDN)
+      operationId: getSingleDevice
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      - name: devtype
+        required: true
+        in: query
+        description: Device identifier
+        schema:
+          type: string
+          enum: [ ICCID,IMSI,MSISDN ]
+      - name: id
+        in: query
+        description: ICCID,IMSI or MSISDN value
+        required: true
+        schema:
+          type: string
+      - name: usage
+        in: query
+        description: 1 or blank
+        schema:
+          type: string
+      responses:
+        200:
+          description: Details for device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponseArray'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+  /changehistory:
+    get:
+      tags:
+      - Device History
+      summary: Get Change History for a single device
+      description: Call to fetch the device change history for a specific device
+      operationId: getChangeHistory
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      - name: devtype
+        required: true
+        in: query
+        description: Device identifier
+        schema:
+          type: string
+          enum: [ ICCID,IMSI,MSISDN ]
+      - name: id
+        in: query
+        description: ICCID,IMSI or MSISDN value
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Change history for a device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceChangeHistoryResponseArray'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+
+  /usagehistory:
+    get:
+      tags:
+      - Device Usage History
+      summary: Get Usage History for a single device
+      description: Call to fetch the device usage history for a specific device
+      operationId: getUsageHistory
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      - name: devtype
+        required: true
+        in: query
+        description: Device identifier
+        schema:
+          type: string
+          enum: [ ICCID,IMSI,MSISDN ]
+      - name: id
+        in: query
+        description: ICCID,IMSI or MSISDN value
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Usage history for a device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceUsageHistoryResponseArray'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+
+  /usage/listfiles/:
+    get:
+      tags:
+      - Data Consumption Reports - List
+      summary: List all data consumption report files available for download
+      description: List data consumption report files available for download for given timeperiod
+      operationId: getUsageFileList
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      - name: begindate
+        in: query
+        required: true
+        description: Start date of report availability , e.g. "2023-04-13T00:00:00.000Z"
+        schema:
+          type: string
+      - name: enddate
+        in: query
+        required: true
+        description: End date of report availability , e.g. "2023-05-23T00:00:00.000Z"
+        schema:
+          type: string
+      responses:
+        200:
+          description: File name(s) available for download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileListArray'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+  /usage/getfile/:
+    get:
+      tags:
+      - Data Consumption Reports - Download
+      summary: Download given report
+      description: Call to download indentified Data Consumption report / file 
+      operationId: getUsageFile
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      - name: filename
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Consumption report file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+        404:
+          description: No file found.
+  /deviceactivity:
+    post:
+      tags:
+      - Device Events
+      summary: Call to pull latest recorded device activity as events
+      description: Call to pull latest recorded device activity/events for monitoring purposes
+      operationId: deviceActivity
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: SubQuery object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubQuery'
+        required: true
+      responses:
+        200:
+          description: Recorded Events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubQueryResponse'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+  /device/tag:
+    post:
+      tags:
+      - Device Tag
+      summary: Set a custom TAG for the device (UDF4 field)
+      description: Call to set the custom tag for a specific device
+      operationId: deviceTag
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: SubQuery object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetTag'
+        required: true
+      responses:
+        200:
+          description: set tag successful
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+        500:
+          description: Remote server error
+  /devicestatus:
+    post:
+      tags:
+      - Change Device Status
+      summary: Activate/Deactivate/Restore/Suspend device
+      description: Change device status to Activate/Deactivate/Restore/Suspend
+      operationId: devicestatus
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: UpdDevices object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdDevices'
+        required: true
+      responses:
+        200:
+          description: Device status changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdDevicesResponse'
+        400:
+          description: Bad request - Please check the input request
+        401:
+          description: Authorization failed - Token invalid or expired
+        500:
+          description: Remote server error
+
+  /sendSMS:
+    post:
+      tags:
+      - Messaging  (optional premium service)
+      description: "Send application oriented message (AO-SMS) to device"
+      summary: Send SMS to device
+      operationId: sendsms
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      requestBody:
+          description: smsSend Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendSmsRequest'
+          required: true
+      responses:
+        '200':
+          description: "successful operation"
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/SendSmsResponse'
+        400:
+          description: "Bad request, please check the input request."
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/SendSmsResponse'
+        '401':
+          description: "User is not authorized to perform this operation"
+          content:
+            application/json:
+             schema:
+              $ref: '#/components/schemas/SendSmsResponse'
+        '500':
+          description: "Server error"
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/SendSmsResponse'
+
+  /querySMS:
+    get:
+      tags:
+      -  Messaging  (optional premium service)
+      description: "Query SMS delivery status with RequestID obtained from sendSMS response"
+      summary: Query message delivery status
+      operationId: querysms
+      parameters:
+      - name: X-Authorization
+        in: header
+        description: API authentication token 
+        required: true
+        schema:
+          type: string
+      - name: messageid
+        in: query
+        description: "RequestId of message sent"
+        schema:
+          type: string
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/QuerySmsResponse'
+        400:
+          description: "Bad request, please check the input request."
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/QuerySmsResponse'
+        401:
+          description: "Token invalid or expired"
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/QuerySmsResponse'
+        404:
+          description: "Not found."
+          content:
+            application/json:
+             schema:
+               $ref: '#/components/schemas/QuerySmsResponse'
+
+components:
+  schemas:
+    SpxUser:
+      type: object
+      properties:
+        token:
+          type: string
+        tokenExpTs:
+          type: string
+      xml:
+        name: SpxUser
+
+    DeviceChangeHistoryResponse:
+      type: object
+      properties:
+        ICCID:
+          type: string
+        IMEI:
+          type: string
+        IMSI:
+          type: string
+        MSISDN:
+          type: string
+        Status:
+          type: string
+        ChangeDate:
+          type: string
+        ChangeType:
+          type: string
+        ColumnName:
+          type: string
+        OldValue:
+          type: string
+        NewValue:
+          type: string
+
+    DeviceChangeHistoryResponseArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/DeviceChangeHistoryResponse'
+      xml:
+        name: DeviceChangeHistoryResponseArray
+
+    DeviceUsageHistoryResponse:
+      type: object
+      properties:
+        ICCID:
+          type: string
+        IMEI:
+          type: string
+        MSISDN:
+          type: string
+        External Device Id:
+          type: string
+        EUICCID:
+          type: string
+        CycleEndDate:
+          type: string
+        BillingCycleEndDate:
+          type: string
+        BillingCycleEndMonth:
+          type: string
+        DataUsage:
+          type: number
+          format: double
+        dataUsageUnit:
+          type: string
+        SMSUsage:
+          type: number
+          format: double
+        VoiceUsage:
+          type: number
+          format: double
+        SessionCount:
+          type: integer
+          format: int32
+
+    DeviceUsageHistoryResponseArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/DeviceUsageHistoryResponse'
+      xml:
+        name: DeviceUsageHistoryResponseArray
+
+
+    DeviceResponse:
+      type: object
+      properties:
+        ICCID:
+          type: string
+        IMEI:
+          type: string
+        MSISDN:
+          type: string
+        IMSI:
+          type: string
+        DeviceStatus:
+          type: string
+        DateUpdated:
+          type: string
+        DateActivated:
+          type: string
+        DateDeactivated:
+          type: string
+      xml:
+        name: DeviceResponse
+
+    DeviceResponseExt:
+      type: object
+      properties:
+        ICCID:
+          type: string
+        IMEI:
+          type: string
+        MSISDN:
+          type: string
+        IMSI:
+          type: string
+        DeviceStatus:
+          type: string
+        DateUpdated:
+          type: string
+        DateActivated:
+          type: string
+        DateDeactivated:
+          type: string
+        DataUsageUnit:
+          type: string
+        SessionCount:
+          type: integer
+          format: int32
+        DataUsage:
+          type: number
+          format: double
+        AvgDailyDataUsage:
+          type: number
+          format: double
+      xml:
+        name: DeviceResponseExt
+
+    FileListArray:
+      type: array
+      items:
+        type: string
+      xml:
+        name: FileListArray
+
+    DeviceResponseArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/DeviceResponse'
+      xml:
+        name: DeviceResponseArray
+
+    DeviceResponseExtArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/DeviceResponseExt'
+      xml:
+        name: DeviceResponseExtArray
+
+    LoginInput:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      xml:
+        name: LoginInput
+
+    ErrorObj:
+      type: object
+      properties:
+        code:
+          type: string
+        error:
+          type: string
+      xml:
+        name: ErrorObj
+
+    SetTag:
+      type: object
+      properties:
+        iccid:
+          type: string
+        tag:
+          type: string
+      xml:
+        name: SetTag
+
+    SubQuery:
+      type: object
+      properties:
+        id:
+          type: string
+        devtype:
+          type: string
+      xml:
+        name: SubQuery
+
+    SubQueryResponse:
+      type: object
+      properties:
+        returnCode:
+          type: string
+        imsi:
+          type: string
+        msisdn:
+          type: string
+        imei:
+          type: string
+        sessionStart:
+          type: string
+        status:
+          type: string
+        gprsStatus:
+          type: string
+        timestamp:
+          type: string
+        countryCode:
+          type: string
+        operatorCode:
+          type: string
+        vlrGt:
+          type: string
+        pdpActive:
+          type: string
+        ip:
+          type: string
+        apn:
+          type: string
+        tx:
+          type: string
+        rx:
+          type: string
+        smsMoCount:
+          type: string
+        smsMoErrorCount:
+          type: string
+        smsMtCount:
+          type: string
+        smsMtErrorCount:
+          type: string
+        lastActivity:
+          type: string
+        lastSmsError:
+          type: string
+        customerNo:
+          type: string
+      xml:
+        name: SubQueryResponse
+
+    UpdDevices:
+      type: object
+      properties:
+        action:
+          type: string
+        iccids:
+          type: array
+          items:
+            type: string
+      xml:
+        name: UpdDevices
+
+    UpdDevicesResponse:
+      type: object
+      properties:
+        RequestTransactionId:
+          type: string
+          format: uuid
+        StatusCode:
+          type: integer
+          format: int32
+        Status:
+          type: string
+        Message:
+          type: string
+        DetailStatusCode:
+          type: string
+        DetailStatus:
+          type: string
+        TransactionId:
+          type: string
+      xml:
+        name: UpdDevicesResponse
+
+
+    SendSmsRequest:
+      type: object
+      properties:
+        smstext:
+          type: string
+        iccid:
+          type: string
+
+    SendSmsResponse:
+      type: object
+      properties:
+        messageid:
+          type: string
+        message:
+          type: string
+
+    QuerySmsResponse:
+      type: object
+      properties:
+        address:
+          type: string
+        deliveryStatus:
+          type: string
+        message:
+          type: string
+
+
+
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
