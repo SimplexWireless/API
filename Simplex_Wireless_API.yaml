@@ -864,8 +864,29 @@ components:
           type: string
         message:
           type: string
+    
+    MessageResponseArray:
+      type: array
+        items:
+        $ref: '#/components/schemas/MessageResponse'
+      xml:
+        name: MessageResponseArray
 
-
+    MessageResponse:
+      type: object
+      properties:
+        ICCID:
+          type: string
+        MSISDN:
+          type: string
+        messageId:
+          type: string
+      message:
+        type: string
+      dateTime:
+        type: string
+    xml:
+      name: MessageResponse
 
   securitySchemes:
     api_key:
