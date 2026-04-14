@@ -31,6 +31,8 @@ info:
     Send SMS to the identified device 
     - **Query Message (AO-SMS)** (premium service on C1)
     Query message delivery status 
+    - **Inbound Message (AT-SMS)** (premium service on C1)
+    Get inbound messages sent from device to account 
     
     First use operation Token to generate your API access token key using your Simplex Wireless API account login credentials. If you don't have those please contact support@simplexwireless.com. 
     
@@ -512,6 +514,42 @@ paths:
             application/json:
              schema:
                $ref: '#/components/schemas/QuerySmsResponse'
+/messages:
+  get:
+    tags:
+    - Inbound messages
+    summary: List all inbound messaged
+    description: Call to fetch the inbound messages on the account
+    operationId: getMessages
+    parameters:
+    - name: X-Authorization
+      in: header
+      description: API authentication token 
+      required: true
+      schema:
+        type: string
+    - name: devtype
+      in: query
+      description: Device identifier
+      schema:
+        type: string
+        enum: [ ICCID,MSISDN ]
+    - name: id
+      in: query
+      description: ICCID or MSISDN value
+      schema:
+        type: string
+    responses:
+      200:
+        description: Messages
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageResponseArray'
+      400:
+        description: Bad request - Please check the input request
+      401:
+        description: Authorization failed - Token invalid or expired           
 
 components:
   schemas:
