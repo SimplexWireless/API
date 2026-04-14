@@ -517,8 +517,8 @@ paths:
   /messages:
     get:
       tags:
-      - Inbound messages
-      summary: List all inbound messaged
+      - Messaging  (optional premium service)
+      summary: List all inbound messages
       description: Call to fetch the inbound messages on the account
       operationId: getMessages
       parameters:
